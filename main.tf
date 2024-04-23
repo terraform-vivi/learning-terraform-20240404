@@ -88,7 +88,7 @@ module "blog_sg" {
 }
 
 
-module " autoscaling" {
+module "autoscaling" {
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "7.4.1"
 
