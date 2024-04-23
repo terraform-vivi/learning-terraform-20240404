@@ -33,7 +33,7 @@ resource "aws_security_group" "blog" {
   name = "blog"
   description = "allow http and https in, allow everything out"
 
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = data.aws_vpc.default.id          #attach to default vpc
 }
 
 resource "aws_security_group_rule" "blog_http_in" {
@@ -44,7 +44,7 @@ resource "aws_security_group_rule" "blog_http_in" {
   cidr_blocks = ["0.0.0.0/0"]
 
 
-  security_group_id = aws_security_group.blog.id
+  security_group_id = aws_security_group.blog.id  # I think this is what links it to the security group
 }
 
 resource "aws_security_group_rule" "blog_https_in" {
@@ -58,7 +58,7 @@ resource "aws_security_group_rule" "blog_https_in" {
   security_group_id = aws_security_group.blog.id
 }
 resource "aws_security_group_rule" "blog_everything_out" {
-  type = "ingress"
+  type = "egress"
   from_port = 0
   to_port   = 0
   protocol  = -1
