@@ -31,18 +31,6 @@ module "blog_vpc" {
   }
 }
 
-resource "aws_instance" "blog" {
-  ami           = data.aws_ami.app_ami.id
-  instance_type = var.instance_type
-  vpc_security_group_ids = [module.blog_sg.security_group_id]
-
-  subnet_id = module.blog_vpc.public_subnets[0]
-
-  tags = {
-    Name = "HelloWorld"
-  }
-}
-
 module "blog_alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "~> 6.0"
@@ -100,70 +88,20 @@ module "blog_sg" {
 }
 
 
+module " autoscaling" {
+  source  = "terraform-aws-modules/autoscaling/aws"
+  version = "7.4.1"
+
+  # Autoscaling group
+  name = "blog"  # replacing instance
+  min_size = 1
+  max_size = 2
+
+  vpc_zone_identifier = module.blog_vpc.public_subnets 
+  target_group_arns   = module.blog_alb.target_group_arns   #amazon resouce numbers
+  security_groups = [module.blog_sg.security_group_id]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-data "aws_vpc" "default" {
-  default = true
+  image_id      = data.aws_ami.app_ami.id
+  instance_type = var.instance_type
 }
-
-
-resource "aws_security_group" "blog" {
-  name = "blog"
-  description = "allow http and https in, allow everything out"
-
-  vpc_id = data.aws_vpc.default.id          #attach to default vpc
-}
-
-resource "aws_security_group_rule" "blog_http_in" {
-  type = "ingress"
-  from_port = 80
-  to_port   = 80
-  protocol  = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
-
-
-  security_group_id = aws_security_group.blog.id  # I think this is what links it to the security group
-}
-
-resource "aws_security_group_rule" "blog_https_in" {
-  type = "ingress"
-  from_port = 443
-  to_port   = 443
-  protocol  = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
-
-
-  security_group_id = aws_security_group.blog.id
-}
-resource "aws_security_group_rule" "blog_everything_out" {
-  type = "egress"
-  from_port = 0
-  to_port   = 0
-  protocol  = -1
-  cidr_blocks = ["0.0.0.0/0"]
-
-
-  security_group_id = aws_security_group.blog.id
-}
-
-
-
